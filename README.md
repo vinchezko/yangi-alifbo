@@ -1,5 +1,7 @@
 # Yangi alifbo — Özbek matn konvertori
 
+https://vinchezko.github.io/yangi-alifbo/
+
 Hozirgi yozuvdagi özbek matnini yangi alifboga bir zumda almaştiradigan veb-sayt. Matn brauzerning özida işlanadi, server yoki hisob (akkaunt) kerak emas.
 
 ## Almashtirish qoidalari
