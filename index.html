@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Yangi alifbo — Özbek matn konvertori</title>
+<meta name="description" content="Hozirgi yozuvdagi Özbek matnini yangi alifboga (Ş, Ç, Ö, Ğ) bir zumda almaştiring.">
+<meta name="theme-color" content="#E6F0F1" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#08131F" media="(prefers-color-scheme: dark)">
+<meta name="color-scheme" content="light dark">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Yangi alifbo — Özbek matn konvertori">
+<meta property="og:description" content="Sh, Ch, Oʻ, Gʻ harflarini Ş, Ç, Ö, Ğ ga bir zumda almaştiring.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230B6E7A'/%3E%3Ctext x='32' y='47' font-size='42' font-family='Georgia,serif' font-weight='700' text-anchor='middle' fill='%23F6CF5C'%3E%C5%9E%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Newsreader:opsz,wght@6..72,400;6..72,600&family=Instrument+Sans:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#E6F0F1;--surface:#F9FCFC;--ink:#0F2A33;--muted:#4F6E78;--line:#C2D6D9;--accent:#0B6E7A;--hl:#F6CF5C;--hlink:#3A2B00;--a1:#7fd6d8;--a2:#f6cf5c;--tint:#D8ECED;--glass:rgba(249,252,252,.9);--ring:rgba(11,110,122,.2);
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#08131F;--surface:#0E2033;--ink:#E4EEF2;--muted:#8FA9B5;--line:#223F58;--accent:#4CC3CF;--hl:#E7B53A;--hlink:#231800;--a1:#14516a;--a2:#6b4e0c;--tint:#123A4C;--glass:rgba(14,32,51,.88);--ring:rgba(76,195,207,.25);color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#08131F;--surface:#0E2033;--ink:#E4EEF2;--muted:#8FA9B5;--line:#223F58;--accent:#4CC3CF;--hl:#E7B53A;--hlink:#231800;--a1:#14516a;--a2:#6b4e0c;--tint:#123A4C;--glass:rgba(14,32,51,.88);--ring:rgba(76,195,207,.25);color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px);scroll-behavior:smooth}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 17px/1.6 'Instrument Sans',system-ui,sans-serif;transition:background .5s,color .5s;overflow-x:hidden}
+body::before{content:"";position:fixed;inset:-20%;z-index:-1;background:radial-gradient(40% 35% at 20% 25%,var(--a1),transparent 70%),radial-gradient(35% 30% at 80% 70%,var(--a2),transparent 70%);opacity:.55;animation:drift 22s ease-in-out infinite alternate}
+@keyframes drift{to{transform:translate(6%,4%) rotate(8deg) scale(1.1)}}
+.wrap{max-width:1040px;margin:0 auto;padding:0 20px}
+#theme{width:42px;height:42px;padding:0;display:grid;place-items:center;border-radius:50%;position:fixed;top:calc(12px + env(safe-area-inset-top,0px));right:14px;z-index:4}
+button{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 14px;cursor:pointer;transition:transform .15s,border-color .2s,box-shadow .2s}
+button:hover{border-color:var(--accent);box-shadow:0 4px 14px -6px var(--accent);transform:translateY(-1px)}
+button:active{transform:scale(.96)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1,h2,h3{font-family:'Fraunces',Georgia,serif;margin:0;letter-spacing:-.02em}
+h1{font-weight:600;font-size:clamp(44px,10vw,96px);line-height:1}
+h2{font-weight:600;font-size:clamp(28px,5vw,42px);line-height:1.1}
+.hero{min-height:92vh;display:flex;flex-direction:column;justify-content:center;padding:70px 0 30px}
+.hero>*{animation:rise .8s both}
+.hero p{color:var(--muted);max-width:56ch;margin:18px 0 0;animation-delay:.15s}
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:34px 0 26px}
+.tile{perspective:700px;animation:rise .7s both;animation-delay:calc(.3s + var(--i)*.1s)}
+.flip{position:relative;height:108px;transform-style:preserve-3d;transform:rotateY(180deg);animation:flip 1s cubic-bezier(.5,0,.2,1) backwards;animation-delay:calc(1.2s + var(--i)*.18s);transition:transform .7s cubic-bezier(.4,0,.2,1)}
+.tile{cursor:pointer;outline-offset:4px}.tile:hover .flip,.tile:focus-visible .flip{transform:rotateY(0)}
+@keyframes flip{from{transform:rotateY(0)}to{transform:rotateY(180deg)}}
+.face{position:absolute;inset:0;backface-visibility:hidden;border:1px solid var(--line);background:var(--surface);border-radius:16px;display:flex;align-items:center;justify-content:space-between;padding:0 18px}
+.face b{font:600 clamp(38px,7vw,64px)/1 'Fraunces',Georgia,serif}
+.face.back{transform:rotateY(180deg);background:linear-gradient(135deg,var(--surface),var(--tint))}
+.face.back b{color:var(--accent)}
+.face small{text-align:right;color:var(--muted);font-size:13px;line-height:1.3}
+.face small i{display:block;font:600 24px/1.1 'Fraunces',Georgia,serif;font-style:normal;color:var(--ink)}
+.cue{display:inline-flex;align-items:center;gap:10px;color:var(--accent);font-weight:600;text-decoration:none;animation-delay:.5s}
+.cue span{display:inline-block;animation:bob 1.6s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(7px)}}
+.guide{padding:70px 0 40px}
+.guide>p{color:var(--muted);max-width:60ch;margin:14px 0 0}
+.steps{position:relative;margin:46px 0 0;padding-left:44px;--p:0}
+.steps::before,.steps::after{content:"";position:absolute;left:11px;top:6px;bottom:6px;width:3px;border-radius:3px;background:var(--line)}
+.steps::after{background:var(--accent);transform-origin:top;transform:scaleY(var(--p))}
+.step{position:relative;display:grid;grid-template-columns:1fr 1fr;gap:26px;align-items:center;padding:0 0 64px}
+.step::before{content:"";position:absolute;left:-41px;top:6px;width:17px;height:17px;border-radius:50%;background:var(--bg);border:3px solid var(--line);transition:.5s}
+.step.in::before{border-color:var(--accent);background:var(--accent);box-shadow:0 0 0 6px var(--ring)}
+.step h3{font-size:24px;margin-bottom:6px}
+.step p{margin:0;color:var(--muted)}
+.reveal{opacity:0;transform:translateY(34px);transition:opacity .8s,transform .8s cubic-bezier(.2,.8,.2,1)}
+.reveal.in{opacity:1;transform:none}
+.demo{border:1px solid var(--line);background:var(--surface);border-radius:16px;min-height:104px;padding:18px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;font:400 24px/1.3 'Newsreader',Georgia,serif;overflow:hidden}
+.mark{border-radius:5px;padding:0 4px;line-height:1.25;cursor:pointer;display:inline-block;transition:background .25s,color .25s}
+.mark.on{background:var(--hl);color:var(--hlink)}
+.mark.off{border-bottom:2px dashed var(--accent)}
+.mark.kept{border-bottom:2px dotted var(--muted)}
+.mark:hover,.mark:focus-visible{outline:0;box-shadow:0 0 0 1.5px var(--accent)}
+.mark.pop{animation:pop .45s cubic-bezier(.2,1.6,.4,1)}
+@keyframes pop{0%{transform:scale(.7) rotate(-3deg)}100%{transform:none}}
+.typing span{display:inline-block;white-space:nowrap;overflow:hidden;width:0;border-right:2px solid var(--accent)}
+.in .typing span{animation:type 5.5s steps(25) infinite,caret .7s step-end infinite}
+@keyframes type{0%{width:0}45%,80%{width:26ch}100%{width:0}}@keyframes caret{50%{border-color:transparent}}
+.sw{display:inline-grid}.sw>*{grid-area:1/1}
+.sw .o{animation:none}
+.in .sw .o{animation:oLoop 6s var(--d) infinite}
+.sw .n{opacity:0}
+.in .sw .n{animation:nLoop 6s var(--d) infinite}
+@keyframes oLoop{0%,12%{opacity:1;transform:none}20%,68%{opacity:0;transform:translateY(-8px)}76%,100%{opacity:1;transform:none}}
+@keyframes nLoop{0%,12%{opacity:0;transform:translateY(8px)}20%,68%{opacity:1;transform:none}76%,100%{opacity:0;transform:translateY(8px)}}
+@keyframes fadeout{to{opacity:0;transform:translateY(-8px)}}@keyframes fadein{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.demo .mark{border:0;border-bottom:2px solid transparent;background:none;font:inherit;color:inherit;box-shadow:none;padding:1px 6px}
+.demo .mark.on{background:var(--hl);color:var(--hlink)}
+.demo .mark.off{border-bottom:2px dashed var(--accent)}
+.demo .mark:hover,.demo .mark:focus-visible{transform:none;outline:0;box-shadow:0 0 0 1.5px var(--accent)}
+.hint{font:600 13px 'Instrument Sans',sans-serif;color:var(--accent);margin-left:auto}
+.in .hint{animation:nudge 1.6s ease-in-out infinite}.hint.off{display:none}
+@keyframes nudge{50%{transform:translateX(5px)}}
+.copyrow{display:flex;align-items:center;gap:14px;flex-wrap:wrap;width:100%}
+.copyrow .pv{flex:1 1 200px;overflow-wrap:anywhere}
+button.ok{background:var(--accent);color:#fff;border-color:var(--accent);animation:okpop .5s cubic-bezier(.2,1.6,.4,1)}
+@keyframes okpop{from{transform:scale(.88)}}
+.tool{padding:50px 0 20px}
+.g .ib{width:34px;height:34px;padding:0;display:grid;place-items:center;border-radius:9px}.ib svg{width:18px;height:18px}
+.bar{min-height:32px}
+.main{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--line);background:var(--glass);backdrop-filter:blur(8px);border-radius:20px;overflow:hidden;box-shadow:0 24px 60px -34px #000;margin-top:24px}
+.pane{padding:18px 20px;display:flex;flex-direction:column;min-width:0}
+.pane+.pane{border-left:1px solid var(--line)}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;margin-bottom:12px;min-height:40px}
+.bar h3{font-size:18px}
+.g{display:flex;gap:8px;flex-wrap:wrap}
+textarea,.out{font-family:'Newsreader',Georgia,serif;font-size:20px;line-height:1.9;width:100%;flex:none;height:clamp(240px,52vh,440px);overflow:auto;overscroll-behavior:contain;border-radius:12px;scrollbar-width:thin;scrollbar-color:var(--line) transparent}
+textarea::-webkit-scrollbar,.out::-webkit-scrollbar{width:10px}
+textarea::-webkit-scrollbar-track,.out::-webkit-scrollbar-track{background:transparent}
+textarea::-webkit-scrollbar-thumb,.out::-webkit-scrollbar-thumb{background:var(--line);border-radius:10px;border:2px solid transparent;background-clip:content-box}
+textarea::-webkit-scrollbar-thumb:hover,.out::-webkit-scrollbar-thumb:hover{background:var(--accent);background-clip:content-box}
+textarea:hover,.out:hover{scrollbar-color:var(--accent) transparent}
+textarea{resize:none;background:transparent;color:var(--ink);border:0;padding:0 8px 0 0;outline:0}
+textarea:focus-visible{outline:2px solid var(--accent);outline-offset:6px;border-radius:12px}
+.out{white-space:pre-wrap;overflow-wrap:anywhere;padding-right:8px}
+.out:empty::before{content:attr(data-ph);color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.chips span{display:inline-flex;gap:6px;align-items:baseline;border:1px solid var(--line);border-radius:999px;padding:1px 10px;font-size:13px;color:var(--muted)}.chips b{font:600 15px 'Fraunces',Georgia,serif;color:var(--accent)}.chips i{font-style:normal;color:var(--ink);font-weight:600}
+.stat{font-size:14px;color:var(--muted);margin-top:10px;min-height:22px}
+.note{color:var(--muted);font-size:14px;margin:16px 2px 0}
+footer{margin:46px 0 0;padding:26px 0 40px;text-align:center;border-top:1px solid var(--line);color:var(--muted)}
+footer a{color:var(--accent);font-weight:600;text-decoration:none;background:linear-gradient(currentColor,currentColor) 0 100%/0 2px no-repeat;transition:background-size .3s}
+footer a:hover{background-size:100% 2px}
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translate(-50%,30px);opacity:0;background:var(--ink);color:var(--bg);padding:9px 18px;border-radius:999px;transition:.35s;pointer-events:none;z-index:5}
+.toast.show{transform:translate(-50%,0);opacity:1}
+#theme svg{animation:spin .5s cubic-bezier(.2,.8,.2,1)}@keyframes spin{from{transform:rotate(-100deg) scale(.4);opacity:0}}
+@keyframes rise{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
+@media (max-width:760px){.tiles{grid-template-columns:repeat(2,1fr)}.step{grid-template-columns:1fr;gap:14px}.main{grid-template-columns:1fr}.pane+.pane{border-left:0;border-top:1px solid var(--line)}textarea,.out{height:240px}.demo{font-size:20px}}
+@media (min-width:900px) and (min-height:740px){
+.lastpage{position:relative;height:170vh;height:170dvh}
+.tool{position:sticky;top:0;height:100vh;height:100dvh;padding:56px 0 0;display:flex;flex-direction:column}
+.tool>h2{font-size:clamp(26px,4vh,36px)}
+.tool .main{flex:1;min-height:0;margin-top:14px;grid-template-rows:minmax(0,1fr)}
+.pane{min-height:0}
+textarea,.out{flex:1;height:auto;min-height:0}
+.note{margin:10px 2px 0}
+footer{margin:12px 0 0;padding:12px 0 16px}
+}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation-iteration-count:1!important;animation-duration:.01ms!important;animation-delay:0s!important;transition-duration:.01ms!important}.reveal{opacity:1;transform:none}.in .typing span{animation:none!important;width:auto;border:0}.in .sw .o{animation:none!important;opacity:0}.in .sw .n{animation:none!important;opacity:1}}
+</style>
+</head>
+<body>
+<noscript><p style="padding:20px;text-align:center">Bu sayt işlaşi uçun JavaScript kerak.</p></noscript>
+<button id="theme" type="button" aria-label="Mavzuni almashtirish" title="Mavzu"></button>
+<main class="wrap">
+
+<section class="hero">
+  <h1>Yangi alifbo</h1>
+  <p>Hozirgi yozuvdagi matnni yangi Oʻzbek alifbosiga bir zumda oʻtkazing. <span data-keep>Sh, Ch, Oʻ va Gʻ</span> harflari Ş, Ç, Ö va Ğ ga almashadi, qolgan harflar oʻzgarmaydi.</p>
+  <div class="tiles" data-keep>
+    <div class="tile" style="--i:0"><div class="flip"><div class="face"><b>Sh</b><small>eski</small></div><div class="face back"><b>Ş</b><small>yangi</small></div></div></div>
+    <div class="tile" style="--i:1"><div class="flip"><div class="face"><b>Ch</b><small>eski</small></div><div class="face back"><b>Ç</b><small>yangi</small></div></div></div>
+    <div class="tile" style="--i:2"><div class="flip"><div class="face"><b>Oʻ</b><small>eski</small></div><div class="face back"><b>Ö</b><small>yangi</small></div></div></div>
+    <div class="tile" style="--i:3"><div class="flip"><div class="face"><b>Gʻ</b><small>eski</small></div><div class="face back"><b>Ğ</b><small>yangi</small></div></div></div>
+  </div>
+  <a class="cue" href="#guide"><span>↓</span> Qanday ishlashini koʻring</a>
+</section>
+
+<section class="guide" id="guide">
+  <h2 class="reveal">Bu sayt nima qiladi?</h2>
+  <p class="reveal">Yangi alifboda toʻrt juft harf bitta belgi bilan yoziladi. Sayt oddiy yozilgan matnni shu qoidaga koʻra avtomatik almashtiradi, ingliz soʻzlari va havolalarga esa tegmaydi.</p>
+  <div class="steps" id="steps">
+    <div class="step reveal"><div><h3>1. Matnni joylang</h3><p>Eski yozuvdagi matnni pastdagi chap oynaga qoʻying yoki yozing.</p></div>
+      <div class="demo typing" data-keep><span>shahar, oʻqituvchi, gʻoya</span></div></div>
+    <div class="step reveal"><div><h3>2. Harflar oʻzi almashadi</h3><p>Oʻzgargan soʻzlar sariq rangda koʻrsatiladi.</p></div>
+      <div class="demo" data-keep><span class="sw" style="--d:0s"><span class="o">shahar</span><span class="n mark on">şahar</span></span>,<span class="sw" style="--d:.35s"><span class="o">oʻqituvchi</span><span class="n mark on">öqituvçi</span></span>,<span class="sw" style="--d:.7s"><span class="o">gʻoya</span><span class="n mark on">ğoya</span></span></div></div>
+    <div class="step reveal"><div><h3>3. Soʻzni bosib qaytaring</h3><p>Sariq soʻzni bossangiz, u eski yozuvga qaytadi. Yana bossangiz, yangisi chiqadi. Oʻzingiz sinab koʻring.</p></div>
+      <div class="demo" data-keep><span id="d3w"></span><span class="hint" id="hint">← bosib köring</span></div></div>
+    <div class="step reveal"><div><h3>4. Nusxa oling</h3><p>Tugmani bossangiz, tayyor matn nusxalanadi. Taʼlim kabi soʻzlardagi tutuq belgisi oʻzgarmaydi.</p></div>
+      <div class="demo" data-keep><div class="copyrow"><div class="pv" id="pv"></div><button id="d4" type="button">Nusxa olish</button></div></div></div>
+  </div>
+</section>
+
+<div class="lastpage"><section class="tool" id="tool">
+  <h2 class="reveal">Matnni almashtiring</h2>
+  <div class="main reveal">
+    <div class="pane">
+      <div class="bar"><h3>Hozirgi yozuv</h3><div class="g"><button class="ib" id="sample" type="button" aria-label="Namuna matn" title="Namuna matn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg></button><button class="ib" id="clear" type="button" aria-label="Tozalaş" title="Tozalaş"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14M10 11v5M14 11v5"/></svg></button></div></div>
+      <textarea id="in" aria-label="Hozirgi yozuvdagi matn" placeholder="Oʻzbekiston, shahar, chiroyli, gʻoya…" spellcheck="false"></textarea>
+      <div class="stat" id="stat-in"></div>
+      <div class="chips" aria-label="Matn statistikasi"><span>Soʻz <i id="s-w">0</i></span><span>Gap <i id="s-s">0</i></span><span>Belgi <i id="s-c">0</i></span><span>Oʻqish <i id="s-t">0</i></span></div>
+    </div>
+    <div class="pane">
+      <div class="bar"><h3>Yangi alifbo</h3><div class="g">
+        <button class="ib" id="all" type="button" aria-label="Hammasini almaştiriş" title="Hammasini almaştiriş"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h13l-3-3M20 16H7l3 3"/></svg></button><button class="ib" id="none" type="button" aria-label="Hammasini qaytariş" title="Hammasini qaytariş"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg></button><button class="ib" id="copy" type="button" aria-label="Nusxa oliş" title="Nusxa oliş"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button></div></div>
+      <div id="out" class="out" aria-live="polite"></div>
+      <div class="stat" id="stat"></div>
+      <div class="chips" data-keep aria-label="Almashgan harflar"><span><b>Ş</b><i id="c-sh">0</i></span><span><b>Ç</b><i id="c-ch">0</i></span><span><b>Ö</b><i id="c-o">0</i></span><span><b>Ğ</b><i id="c-g">0</i></span></div>
+    </div>
+  </div>
+  <p class="note">Taʼlim, maʼno kabi soʻzlardagi tutuq belgisi oʻzgarmaydi. Keng tarqalgan ingliz soʻzlari, havolalar, saytlar va @nomlar ham saqlanadi (nuqtali chiziq). Kerak boʻlsa, ustiga bosib almashtirishingiz mumkin.</p>
+<footer>Muallif: <a href="https://t.me/vinchs" target="_blank" rel="noopener noreferrer">Vinchezko</a></footer></section></div>
+</main>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+const AP="['ʻ‘’`ʼ´]";
+const WORD=new RegExp("(https?:\\/\\/\\S+|www\\.\\S+|[\\w.+-]+@[\\w-]+\\.[\\w.-]+|[@#]\\w+|\\b(?:[a-z0-9-]+\\.)+(?:com|org|net|uz|me|io|edu|gov|ru|app|dev|info|ai|co|tv|ly|xyz|gle)\\b(?:\\/\\S*)?)|([A-Za-z]+(?:"+AP+"[A-Za-z]+)*"+AP+"?)","gi");
+const DEFAULTS="she, sheesh, ship, shop, shoe, shoes, sheep, sheet, shell, shelf, shine, shiny, shirt, shorts, shock, shoot, shout, show, shown, shower, shadow, shape, share, sharp, shark, shame, shake, shall, shift, shut, shelter, shoulder, shallow, shampoo, showerhead, shoreline, shoelace, shoemaker, showroom, showcase, shopping, shopper, shopkeeper, shoplift, shipment, shipping, shipyard, spaceship, battleship, friendship, scholarship, leadership, membership, ownership, relationship, partnership, championship, hardship, internship, worship, sunshine, sunlight, flashlight, fish, dish, dishes, wish, wishes, wash, washing, washer, crash, smash, splash, brush, brushing, blush, flush, rush, push, hush, crush, fresh, flesh, flash, flashy, flashcard, finish, finished, finishing, English, establish, established, publish, publisher, publishing, selfish, foolish, stylish, childish, vanish, flourish, furnish, distinguish, accomplish, astonish, nourish, polish, punish, rubbish, selfishness, freshness, fisherman, fishery, fishbowl, goldfish, starfish, dishwashing, machine, shows, showed, short, shy, chip, chips, chat, chess, check, church, change, changes, channel, charge, chart, child, children, choice, choose, chair, chance, which, much, such, each, teach, reach, search, school, technology, chemistry, character, o'clock, Washington, Chicago, Chelsea, Microsoft, Github, Telegram, Instagram, Google, Chrome, Youtube, ChatGPT";
+const $=id=>document.getElementById(id);
+const SAMPLE="Oʻzbekiston — mening vatanim. Taʼlim har bir inson uchun muhim. Shahar koʻchalarida bolalar oʻynayapti, gʻoyalarga toʻla kun. Men chiroyli bogʻda choy ichdim. Mas’ul shaxslar ma'no haqida gaplashdi.\n\nEnglish words stay safe: she should check the school and the church. Visit chess.com, t.me/vinchs or write to shoh@mail.uz @shoh #church";
+let parts=[],state=new Map(),protSet=new Set(),popIdx=-1;
+const norm=w=>w.toLowerCase().replace(new RegExp(AP,"g"),"'");
+function store(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}}
+function conv(w){
+  const c={sh:0,ch:0,o:0,g:0};
+  let r=w.replace(new RegExp("([oOgG])"+AP,"g"),(m,l)=>{const o=l.toLowerCase()==="o";c[o?"o":"g"]++;return o?(l==="o"?"ö":"Ö"):(l==="g"?"ğ":"Ğ")});
+  r=r.replace(/(s)h/gi,(m,s)=>{c.sh++;return s==="s"?"ş":"Ş"}).replace(/(c)h/gi,(m,s)=>{c.ch++;return s==="c"?"ç":"Ç"});
+  return {r,c};
+}
+const N=s=>conv(s).r;
+function localize(){
+  const w=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT),ns=[];
+  while(w.nextNode())ns.push(w.currentNode);
+  ns.forEach(n=>{if(!n.parentElement.closest("[data-keep],script,style,textarea"))n.nodeValue=N(n.nodeValue)});
+  $("in").placeholder=$("in").placeholder; $("out").dataset.ph=N("Almashtirilgan matn shu yerda koʻrinadi.");
+}
+function toast(t){const e=$("toast");e.textContent=N(t);e.classList.add("show");clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove("show"),1600)}
+const reduce=matchMedia("(prefers-reduced-motion:reduce)").matches;
+function tween(el,to){const from=+el.dataset.v||0;el.dataset.v=to;if(reduce||from===to){el.textContent=to;return}const t0=performance.now();(function f(t){const k=Math.min(1,(t-t0)/600);el.textContent=Math.round(from+(to-from)*(1-Math.pow(1-k,3)));if(k<1)requestAnimationFrame(f)})(t0)}
+
+function readProt(){protSet=new Set(DEFAULTS.split(/[,\n]/).map(s=>norm(s.trim())).filter(Boolean))}
+function parse(){
+  parts=[];let last=0,idx=0,text=$("in").value,m;WORD.lastIndex=0;
+  while((m=WORD.exec(text))){
+    let tok=m[0];
+    if(m[2]&&new RegExp(AP+"$").test(tok)&&!/[oOgG]/.test(tok.charAt(tok.length-2))){tok=tok.slice(0,-1);WORD.lastIndex=m.index+tok.length}
+    if(m.index>last)parts.push({s:text.slice(last,m.index)});
+    if(m[2]){const {r,c}=conv(tok);parts.push({orig:tok,conv:r,c,idx:idx++,prot:protSet.has(norm(tok))})}
+    else parts.push({s:tok});
+    last=m.index+tok.length;
+  }
+  if(last<text.length)parts.push({s:text.slice(last)});
+}
+const applied=p=>state.has(p.idx)?state.get(p.idx):!p.prot;
+const label=p=>[["sh","Sh→Ş"],["ch","Ch→Ç"],["o","Oʻ→Ö"],["g","Gʻ→Ğ"]].filter(([k])=>p.c[k]).map(x=>x[1]).join(", ");
+function inStats(){
+  const t=$("in").value,clean=t.replace(/\b[\w-]+(?:\.[\w-]+)+\b\S*/g," "),has=x=>/[\p{L}\p{N}]/u.test(x);
+  const ws=t.split(/\s+/).filter(has),sn=clean.split(/[.!?…]+/).filter(has).length;
+  const uq=new Set(ws.map(x=>norm(x.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu,"")))).size,sec=Math.ceil(ws.length/200*60);
+  $("s-w").textContent=ws.length;$("s-s").textContent=sn;$("s-c").textContent=t.length;
+  $("s-t").textContent=!ws.length?"0":sec<60?sec+N(" soniya"):Math.round(sec/60)+" daq";
+  $("stat-in").textContent=ws.length?uq+N(" ta takrorlanmas soʻz."):"";
+}
+function render(){
+  const out=$("out");out.replaceChildren();
+  const tot={sh:0,ch:0,o:0,g:0};let changed=0,kept=0,result="";
+  for(const p of parts){
+    if(p.s!==undefined){out.appendChild(document.createTextNode(p.s));result+=p.s;continue}
+    if(p.conv===p.orig){out.appendChild(document.createTextNode(p.orig));result+=p.orig;continue}
+    const on=applied(p),el=document.createElement("span");
+    el.className="mark "+(on?"on":(p.prot&&!state.has(p.idx)?"kept":"off"))+(p.idx===popIdx?" pop":"");
+    el.textContent=on?p.conv:p.orig;el.tabIndex=0;el.setAttribute("role","button");
+    el.title=on?N("Eskisiga qaytarish: ")+p.orig+" ("+label(p)+")":N("Almashtirish: ")+p.conv;
+    const flip=()=>{popIdx=p.idx;state.set(p.idx,!on);render();popIdx=-1};
+    el.onclick=flip;el.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();flip()}};
+    out.appendChild(el);result+=on?p.conv:p.orig;
+    if(on){changed++;for(const k in tot)tot[k]+=p.c[k]}else kept++;
+  }
+  for(const k in tot)tween($("c-"+k),tot[k]);
+  $("stat").textContent=parts.length?N(changed+" ta soʻz almashtirildi, "+kept+" tasi eski yozuvda qoldi."):"";
+  render.result=result;inStats();
+}
+function reparse(){state=new Map();parse();render()}
+
+$("in").addEventListener("input",reparse);
+$("sample").onclick=()=>{$("in").value=SAMPLE;reparse()};
+$("clear").onclick=()=>{$("in").value="";reparse();$("in").focus()};
+/* "Almashtirish" returns to the smart default (English words, links stay); "Qaytarish" restores every word */
+$("all").onclick=()=>{state=new Map();render()};
+$("none").onclick=()=>{for(const p of parts)if(p.idx!==undefined&&p.conv!==p.orig)state.set(p.idx,false);render()};
+async function copyText(v){
+  try{await navigator.clipboard.writeText(v);return true}catch(e){
+    try{const t=document.createElement("textarea");t.value=v;t.style.cssText="position:fixed;opacity:0";document.body.appendChild(t);t.select();const ok=document.execCommand("copy");t.remove();return ok}catch(_){return false}}
+}
+const COPYIC=$("copy").innerHTML,CHECKIC='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"/></svg>';
+$("copy").onclick=async()=>{const b=$("copy"),ok=await copyText(render.result||"");toast(ok?"Nusxa olindi":"Nusxa olib boʻlmadi");
+  if(ok){b.innerHTML=CHECKIC;b.classList.add("ok");clearTimeout(b.t);b.t=setTimeout(()=>{b.innerHTML=COPYIC;b.classList.remove("ok")},1500)}};
+/* interactive guide demo: steps 3 and 4 share the same words */
+const DW=["shahar","oʻqituvchi","gʻoya"].map(o=>({o,n:conv(o).r,on:true}));
+const demoText=()=>DW.map(w=>w.on?w.n:w.o).join(", ");
+function pv(){$("pv").textContent=demoText()}
+DW.forEach((w,i)=>{const b=document.createElement("button");b.type="button";b.className="mark on";b.textContent=w.n;
+  b.onclick=()=>{w.on=!w.on;b.className="mark "+(w.on?"on":"off");b.textContent=w.on?w.n:w.o;void b.offsetWidth;b.classList.add("pop");$("hint").classList.add("off");pv()};
+  $("d3w").appendChild(b);if(i<DW.length-1)$("d3w").appendChild(document.createTextNode(", "))});
+pv();
+$("d4").onclick=async()=>{const b=$("d4");if(b.classList.contains("ok"))return;const ok=await copyText(demoText());
+  b.textContent=ok?"✓ Nusxa olindi":"Nusxa olib boʻlmadi";if(ok)b.classList.add("ok");setTimeout(()=>{b.textContent="Nusxa olish";b.classList.remove("ok")},2000)};
+function dark(){const r=document.documentElement.dataset.theme;return r?r==="dark":matchMedia("(prefers-color-scheme:dark)").matches}
+const MOON='<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>',SUN='<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
+function themeLabel(){$("theme").innerHTML=dark()?SUN:MOON}
+try{matchMedia("(prefers-color-scheme:dark)").addEventListener("change",themeLabel)}catch(e){}
+$("theme").onclick=()=>{const n=dark()?"light":"dark";document.documentElement.dataset.theme=n;store("uz-theme",n);themeLabel()};
+
+/* scroll reveal + timeline progress */
+const io=window.IntersectionObserver?new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add("in");io.unobserve(e.target)}}),{threshold:.3}):null;
+document.querySelectorAll(".reveal").forEach(e=>io?io.observe(e):e.classList.add("in"));
+const steps=$("steps");let tick=false;
+function prog(){tick=false;const r=steps.getBoundingClientRect(),p=Math.max(0,Math.min(1,(innerHeight*.65-r.top)/r.height));steps.style.setProperty("--p",p)}
+addEventListener("scroll",()=>{if(!tick){tick=true;requestAnimationFrame(prog)}},{passive:true});
+
+(function init(){
+  const t=store("uz-theme");if(t)document.documentElement.dataset.theme=t;
+  readProt();
+  localize();themeLabel();document.querySelectorAll(".tile").forEach(t=>t.tabIndex=0);
+  reparse();prog();
+})();
+</script>
+</body>
+</html>
